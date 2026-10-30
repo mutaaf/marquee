@@ -1,0 +1,119 @@
+// Pure decision logic: given the stored state, what may fill each slot of an app.
+// Everything the kid-safety policy promises is enforced here, on the server, so a
+// misconfigured app or a hand-edited request can never widen it (docs/POLICY.md).
+
+export const KINDS = ['banner', 'interstitial', 'rewarded'];
+export const CONTEXTS = ['menu', 'gameplay'];
+export const SOURCES = ['auto', 'network', 'direct', 'off'];
+const ID = /^[a-z0-9][a-z0-9-]{0,39}$/;
+
+/** Parse `id:kind:context,…` from the loader into validated slot declarations. */
+export function parseDeclared(raw, max = 30) {
+  const out = [];
+  for (const part of String(raw || '').split(',').slice(0, max)) {
+    const [id, kind = 'banner', context = 'menu'] = part.trim().split(':');
+    if (ID.test(id || '') && KINDS.includes(kind) && CONTEXTS.includes(context)) out.push({ id, kind, context });
+  }
+  return out;
+}
+
+export function isLive(c, day) {
+  return c.status === 'active' && !!c.creative_key && (!c.start || c.start <= day) && (!c.end || c.end >= day);
+}
+
+/** Can campaign `c` run in a `kind` slot of `app`? */
+export function campaignFits(c, app, kind, day) {
+  if (!isLive(c, day)) return false;
+  if (app.audience === 'kids' && !c.kid_safe) return false;
+  const apps = list(c.apps);
+  if (apps.length && !apps.includes(app.id)) return false;
+  const kinds = list(c.slot_kinds);
+  if (kinds.length && !kinds.includes(kind)) return false;
+  // Banners are images; a video needs an interstitial or rewarded slot to play in.
+  if (kind === 'banner' && c.media !== 'image') return false;
+  return true;
+}
+
+/** Google is configured enough to serve a slot of this kind. */
+export function networkReady(settings, app, kind) {
+  if (!settings.adsense_client || !app.network_enabled) return false;
+  if (kind === 'banner') return true;
+  return !!settings.h5_enabled && !!app.is_game; // adBreak() is the H5 Games Ads API
+}
+
+/**
+ * Resolve one slot to { source: 'network'|'direct'|'none' }.
+ * Kids apps: Google only outside gameplay (child-directed tagged); gameplay is direct-only.
+ */
+export function resolveSlot(slot, app, settings, campaigns, day) {
+  if (!app.enabled || slot.source === 'off') return 'none';
+  const kidsGameplay = app.audience === 'kids' && slot.context === 'gameplay';
+  const hasDirect = campaigns.some((c) => campaignFits(c, app, slot.kind, day));
+  const net = !kidsGameplay && networkReady(settings, app, slot.kind) && (slot.kind !== 'banner' || !!(slot.ad_unit || settings.adsense_display_unit));
+  if (slot.source === 'network') return net ? 'network' : hasDirect ? 'direct' : 'none';
+  if (slot.source === 'direct') return hasDirect ? 'direct' : 'none';
+  // auto: Google first (it pays without anyone selling), direct sponsors as fill.
+  return net ? 'network' : hasDirect ? 'direct' : 'none';
+}
+
+/** The public config an app's loader receives. No secrets, nothing about the visitor. */
+export function buildConfig({ app, slots, settings, campaigns, day, origin = '' }) {
+  if (!app) return { v: 1, enabled: false, slots: {}, campaigns: [] };
+  const kids = app.audience === 'kids';
+  const out = {};
+  for (const s of slots) {
+    out[s.id] = {
+      kind: s.kind,
+      context: s.context,
+      source: resolveSlot(s, app, settings, campaigns, day),
+      adUnit: s.ad_unit || (s.kind === 'banner' ? settings.adsense_display_unit || '' : ''),
+      every: s.frequency_sec ?? (s.kind === 'interstitial' ? 120 : 0),
+    };
+  }
+  const usedKinds = new Set(Object.values(out).filter((s) => s.source === 'direct').map((s) => s.kind));
+  const camp = campaigns
+    .filter((c) => [...usedKinds].some((k) => campaignFits(c, app, k, day)))
+    .map((c) => ({
+      id: c.id,
+      media: c.media,
+      src: `${origin}/ads/cr/${c.creative_key}`,
+      w: c.width || 0,
+      h: c.height || 0,
+      // Kids apps never click out (no parental gate in a game); general apps go through the counter.
+      click: !kids && c.click_url ? `${origin}/ads/c/${c.id}?a=${app.id}` : '',
+      weight: Math.max(1, c.weight || 1),
+      kinds: KINDS.filter((k) => campaignFits(c, app, k, day)),
+      label: c.advertiser || '',
+    }));
+  return {
+    v: 1,
+    app: app.id,
+    enabled: !!app.enabled,
+    audience: app.audience,
+    adsense: settings.adsense_client && app.network_enabled
+      ? { client: settings.adsense_client, childDirected: kids, test: !!settings.adsense_test, h5: !!settings.h5_enabled && !!app.is_game }
+      : null,
+    slots: out,
+    campaigns: camp,
+  };
+}
+
+/** Weighted pick; `rand` injectable for tests. */
+export function pickWeighted(items, rand = Math.random) {
+  const total = items.reduce((t, i) => t + (i.weight || 1), 0);
+  let r = rand() * total;
+  for (const i of items) if ((r -= i.weight || 1) < 0) return i;
+  return items[items.length - 1] || null;
+}
+
+export function adsTxt(settings) {
+  const lines = ['# mutaafaziz.com ads.txt, generated by Marquee (/ads/admin)'];
+  if (settings.adsense_client) lines.push(`google.com, ${settings.adsense_client.replace(/^ca-/, '')}, DIRECT, f08c47fec0942fa0`);
+  for (const l of String(settings.ads_txt_extra || '').split('\n').map((x) => x.trim()).filter(Boolean)) lines.push(l);
+  return lines.join('\n') + '\n';
+}
+
+function list(v) {
+  if (Array.isArray(v)) return v;
+  try { return JSON.parse(v || '[]'); } catch { return []; }
+}

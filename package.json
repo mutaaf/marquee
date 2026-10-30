@@ -1,0 +1,16 @@
+{
+  "name": "marquee",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Marquee: one ad server + console for every app at mutaafaziz.com (Google AdSense/H5 Games Ads + direct sponsors).",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "dev": "wrangler dev",
+    "test": "vitest run",
+    "check": "vitest run && node --check public/ads/v1/ads.js",
+    "deploy": "wrangler deploy",
+    "up": "npm install && wrangler dev"
+  },
+  "devDependencies": { "vitest": "^4.1.11", "wrangler": "^4.151.2" }
+}

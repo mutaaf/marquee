@@ -1,0 +1,19 @@
+{
+  // Marquee: ad server for the mutaafaziz.com collection. Owns mutaafaziz.com/ads/* and /ads.txt.
+  // Worker routes take precedence over the personal site's Custom Domain.
+  "name": "marquee",
+  "compatibility_date": "2026-10-01",
+  "main": "src/worker.js",
+  "workers_dev": true,
+  "assets": { "directory": "./public", "binding": "ASSETS", "run_worker_first": ["/ads/api/*", "/ads/c/*", "/ads/cr/*", "/ads.txt", "/ads", "/ads/"] },
+  "d1_databases": [{ "binding": "DB", "database_name": "marquee", "database_id": "d923ff70-a9f8-4158-abc0-9f86787ef8eb" }],
+  // Creatives (images + video, ≤ 24 MB) live in KV: free tier, no R2 card needed.
+  "kv_namespaces": [{ "binding": "CREATIVES", "id": "1835ed97f3514751904bb6963748bfe6" }],
+  // Pull AdSense earnings every 6 hours.
+  "triggers": { "crons": ["17 */6 * * *"] },
+  "routes": [
+    { "pattern": "mutaafaziz.com/ads/*", "zone_name": "mutaafaziz.com" },
+    { "pattern": "mutaafaziz.com/ads", "zone_name": "mutaafaziz.com" },
+    { "pattern": "mutaafaziz.com/ads.txt", "zone_name": "mutaafaziz.com" }
+  ]
+}

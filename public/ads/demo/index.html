@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Marquee demo</title>
+<style>
+body{margin:0;background:#120f0c;color:#f3e9d2;font:16px/1.5 Georgia,serif}
+main{max-width:760px;margin:0 auto;padding:32px 16px}
+h1{font:900 48px/1 Impact,sans-serif;color:#ffb627;text-transform:uppercase;margin:0 0 12px}
+button{font:600 15px system-ui;background:#ffb627;color:#1a1209;border:0;border-radius:8px;padding:10px 16px;cursor:pointer;margin:4px}
+.slot{min-height:90px;aspect-ratio:8/1;border:1px dashed #3a2f22;border-radius:8px;margin:18px 0;overflow:hidden}
+#out{font:13px ui-monospace,monospace;color:#a89c84}
+</style>
+<script async src="/ads/v1/ads.js" data-app="demo" data-slots="break:interstitial:menu,bonus:rewarded:menu"></script>
+</head>
+<body><main>
+<h1>Marquee demo</h1>
+<p>Every placement type, on the <code>demo</code> app. Turn it on and add slots or sponsors in <a href="/ads/admin/" style="color:#ffb627">the console</a>.</p>
+<div class="slot" data-marquee="top"></div>
+<button id="i">Interstitial</button><button id="r">Rewarded video</button>
+<p id="out">…</p>
+<div class="slot" data-marquee="bottom"></div>
+<script>
+const m = window.marquee || (window.marquee = { q: [] });
+const out = (t) => (document.getElementById('out').textContent = t);
+document.getElementById('i').onclick = () => marquee.interstitial('break', { beforeAd: () => out('ad showing: game paused'), afterAd: () => out('ad done: game resumed') });
+document.getElementById('r').onclick = async () => out((await marquee.rewarded('bonus', { beforeAd: () => out('reward ad showing') })) ? 'reward granted ✓' : 'no reward');
+</script>
+</main></body></html>

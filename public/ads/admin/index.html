@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Marquee · Ad desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;800;900&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#f3e9d2; --dim:#a89c84; --faint:#5d5446; --bg:#120f0c; --panel:#1b1713; --line:#2e271f;
+  --bulb:#ffb627; --bulb-glow:rgba(255,182,39,.35); --red:#e5484d; --green:#3ecf8e; --blue:#6aa9ff;
+  --display:'Big Shoulders Display',Impact,sans-serif; --body:'Bricolage Grotesque',Georgia,serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--body)}
+body{background:
+  radial-gradient(1200px 500px at 15% -10%,rgba(255,182,39,.10),transparent 60%),
+  radial-gradient(900px 600px at 110% 10%,rgba(229,72,77,.07),transparent 60%),
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.05'/%3E%3C/svg%3E"),var(--bg);
+  min-height:100vh}
+a{color:var(--bulb)}
+button,input,select{font:inherit;color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px 80px}
+
+/* marquee header: a lit sign with chasing bulbs */
+header{position:relative;margin:24px 0 8px;padding:22px 28px 18px;border:2px solid #3a2f22;border-radius:14px;
+  background:linear-gradient(#1f1a14,#16120e);box-shadow:inset 0 0 0 6px #120f0c,inset 0 0 0 8px #2b241b}
+header .bulbs{position:absolute;inset:3px;pointer-events:none;border-radius:12px;
+  background:radial-gradient(circle,var(--bulb) 0 2.2px,transparent 3px) 0 0/18px 18px;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;padding:5px;
+  animation:chase 1.4s steps(2) infinite;filter:drop-shadow(0 0 4px var(--bulb-glow))}
+@keyframes chase{50%{background-position:9px 0}}
+header h1{margin:0;font:900 clamp(40px,7vw,78px)/.85 var(--display);letter-spacing:.02em;text-transform:uppercase;
+  color:var(--bulb);text-shadow:0 0 18px var(--bulb-glow),0 0 2px #fff6}
+header p{margin:6px 0 0;color:var(--dim);font-size:14px}
+header .who{position:absolute;right:24px;top:22px;display:flex;gap:8px;align-items:center}
+
+nav{display:flex;gap:4px;margin:18px 0 22px;border-bottom:1px solid var(--line);overflow-x:auto}
+nav button{background:none;border:0;padding:12px 16px;cursor:pointer;color:var(--dim);font:800 18px/1 var(--display);
+  letter-spacing:.08em;text-transform:uppercase;border-bottom:3px solid transparent;white-space:nowrap}
+nav button[aria-selected=true]{color:var(--ink);border-color:var(--bulb)}
+
+section{display:none;animation:rise .35s ease both}
+section.on{display:block}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}}
+h2{font:800 26px/1 var(--display);text-transform:uppercase;letter-spacing:.06em;margin:28px 0 12px}
+h2 small{font:400 13px var(--body);color:var(--dim);letter-spacing:0;text-transform:none;margin-left:8px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(min(100%,560px),1fr))}
+td select{width:auto;min-width:92px;padding:6px 8px}
+.muted{color:var(--dim)} .tiny{font-size:12px}
+.mono{font-family:var(--mono)}
+
+/* split-flap money */
+.flap{display:flex;gap:4px;flex-wrap:wrap}
+.flap span{display:inline-grid;place-items:center;min-width:.68em;padding:.06em .08em;font:600 clamp(40px,8vw,84px)/1 var(--mono);
+  background:linear-gradient(#26201a 49%,#0e0b09 50% 51%,#221c16 52%);border-radius:6px;color:var(--ink);
+  box-shadow:0 2px 0 #000,inset 0 1px 0 #ffffff10;animation:flip .5s cubic-bezier(.3,1.6,.5,1) both}
+.flap span.sym{background:none;box-shadow:none;color:var(--bulb);min-width:auto}
+@keyframes flip{from{transform:rotateX(-90deg)}}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:16px}
+.kpi b{display:block;font:600 24px var(--mono)} .kpi i{font-style:normal;color:var(--dim);font-size:12px;text-transform:uppercase;letter-spacing:.08em}
+
+.chart{display:flex;align-items:flex-end;gap:3px;height:150px;margin-top:18px;padding-top:8px;border-bottom:1px solid var(--line)}
+.chart div{flex:1;display:flex;flex-direction:column-reverse;min-width:4px;position:relative}
+.chart div:hover::after{content:attr(data-tip);position:absolute;bottom:100%;left:50%;transform:translate(-50%,-6px);white-space:pre;
+  background:#000;border:1px solid var(--line);padding:6px 8px;border-radius:6px;font:12px var(--mono);z-index:3}
+.chart i{display:block;border-radius:2px 2px 0 0}
+.legend{display:flex;gap:16px;margin-top:8px;font-size:12px;color:var(--dim)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font:600 11px var(--body);text-transform:uppercase;letter-spacing:.1em;color:var(--dim);padding:8px 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 10px;border-bottom:1px solid #241e18;vertical-align:middle}
+td.num,th.num{text-align:right;font-family:var(--mono)}
+.scroll{overflow-x:auto}
+
+/* controls */
+.btn{background:var(--bulb);color:#1a1209;border:0;border-radius:8px;padding:9px 16px;font-weight:600;cursor:pointer;
+  box-shadow:0 0 0 0 var(--bulb-glow);transition:box-shadow .2s,transform .1s}
+.btn:hover{box-shadow:0 0 0 5px var(--bulb-glow)} .btn:active{transform:translateY(1px)}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.danger{background:transparent;color:var(--red);border:1px solid #5a2427}
+.btn.sm{padding:5px 10px;font-size:13px}
+input[type=text],input[type=password],input[type=url],input[type=number],input[type=date],select{
+  background:#0f0c0a;border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%;outline:none}
+input:focus,select:focus{border-color:var(--bulb)}
+label.f{display:block;margin:12px 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.row>*{flex:1}
+.sw{position:relative;display:inline-flex;align-items:center;gap:8px;cursor:pointer;user-select:none;font-size:14px}
+.sw input{appearance:none;width:42px;height:24px;border-radius:99px;background:#3a3027;transition:.2s;cursor:pointer;flex:none;margin:0}
+.sw input::after{content:"";display:block;width:18px;height:18px;margin:3px;border-radius:50%;background:#7a6c58;transition:.2s}
+.sw input:checked{background:var(--bulb);box-shadow:0 0 12px var(--bulb-glow)}
+.sw input:checked::after{transform:translateX(18px);background:#1a1209}
+.pill{display:inline-block;padding:2px 8px;border-radius:99px;font:600 11px var(--body);letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--line)}
+.pill.kids{color:#ffd27a;border-color:#6b5420} .pill.net{color:var(--blue);border-color:#294a73} .pill.dir{color:var(--green);border-color:#1f5a40}
+.pill.none{color:var(--faint)} .pill.live{color:var(--green);border-color:#1f5a40} .pill.paused{color:var(--dim)}
+
+/* setup checklist */
+.steps{counter-reset:s;display:grid;gap:12px}
+.step{position:relative;padding-left:58px}
+.step::before{counter-increment:s;content:counter(s);position:absolute;left:16px;top:18px;width:30px;height:30px;border-radius:50%;
+  display:grid;place-items:center;font:800 18px var(--display);border:2px solid var(--line);color:var(--dim)}
+.step.done::before{content:"✓";background:var(--bulb);color:#1a1209;border-color:var(--bulb);box-shadow:0 0 14px var(--bulb-glow)}
+.step h3{margin:0 0 4px;font:800 20px var(--display);letter-spacing:.04em;text-transform:uppercase}
+.copy{cursor:pointer;border-bottom:1px dashed var(--faint)}
+
+.drop{border:2px dashed var(--line);border-radius:12px;padding:22px;text-align:center;color:var(--dim);cursor:pointer;transition:.2s}
+.drop.over,.drop:hover{border-color:var(--bulb);color:var(--ink);background:#ffb62708}
+.thumb{width:120px;height:68px;object-fit:contain;background:#0b0907;border-radius:6px;border:1px solid var(--line)}
+.camp{display:grid;grid-template-columns:130px 1fr auto;gap:14px;align-items:center}
+@media (max-width:640px){.camp{grid-template-columns:1fr}.step{padding-left:48px}.step::before{left:8px}}
+
+#toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,120px);background:#000;border:1px solid var(--bulb);
+  color:var(--ink);padding:10px 16px;border-radius:10px;transition:.3s;z-index:9;box-shadow:0 0 30px var(--bulb-glow)}
+#toast.on{transform:translate(-50%,0)}
+#login{max-width:380px;margin:12vh auto;text-align:center}
+#login h1{font:900 64px/1 var(--display);color:var(--bulb);text-shadow:0 0 20px var(--bulb-glow);margin:0 0 18px;text-transform:uppercase}
+</style>
+</head>
+<body>
+<div id="login" hidden>
+  <h1>Marquee</h1>
+  <form id="loginForm" class="card">
+    <label class="f" for="pw">Operator password</label>
+    <input id="pw" type="password" autocomplete="current-password" autofocus>
+    <p><button class="btn" style="width:100%">Raise the curtain</button></p>
+    <p id="loginErr" class="tiny" style="color:var(--red)"></p>
+  </form>
+</div>
+
+<div class="wrap" id="app" hidden>
+  <header>
+    <div class="bulbs"></div>
+    <h1>Marquee</h1>
+    <p>The ad desk for every app at mutaafaziz.com: Google demand, direct sponsors, one switchboard.</p>
+    <div class="who"><button class="btn ghost sm" id="logout">Sign out</button></div>
+  </header>
+  <nav role="tablist">
+    <button data-tab="money" aria-selected="true">Box office</button>
+    <button data-tab="apps">Apps &amp; slots</button>
+    <button data-tab="campaigns">Sponsors</button>
+    <button data-tab="setup">Setup</button>
+  </nav>
+
+  <section id="money" class="on"></section>
+  <section id="apps"></section>
+  <section id="campaigns"></section>
+  <section id="setup"></section>
+</div>
+<div id="toast"></div>
+
+<script>
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const money = (n) => '$' + (n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const int = (n) => (n || 0).toLocaleString('en-US');
+let S = null;
+
+async function api(path, opts = {}) {
+  const r = await fetch('/ads/api/admin/' + path, { credentials: 'same-origin', ...opts,
+    headers: opts.body && !(opts.body instanceof Blob) && !(opts.body instanceof File) ? { 'content-type': 'application/json', ...(opts.headers || {}) } : opts.headers });
+  const j = await r.json().catch(() => ({}));
+  if (r.status === 401 && path !== 'login') { show('login'); throw new Error('sign in'); }
+  if (!r.ok) throw new Error(j.error || r.statusText);
+  return j;
+}
+const put = (p, b) => api(p, { method: 'PUT', body: JSON.stringify(b) });
+const post = (p, b = {}) => api(p, { method: 'POST', body: JSON.stringify(b) });
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(t._); t._ = setTimeout(() => t.classList.remove('on'), 2400); }
+function show(which) { $('#login').hidden = which !== 'login'; $('#app').hidden = which === 'login'; }
+
+$('#loginForm').onsubmit = async (e) => {
+  e.preventDefault();
+  try { await post('login', { password: $('#pw').value }); await refresh(); } catch (err) { $('#loginErr').textContent = err.message; }
+};
+$('#logout').onclick = async () => { await api('logout'); show('login'); };
+document.querySelectorAll('nav button').forEach((b) => b.onclick = () => tab(b.dataset.tab));
+function tab(t) {
+  document.querySelectorAll('nav button').forEach((b) => b.setAttribute('aria-selected', b.dataset.tab === t));
+  document.querySelectorAll('section').forEach((s) => s.classList.toggle('on', s.id === t));
+  history.replaceState(null, '', '#' + t);
+}
+
+async function refresh() {
+  S = await api('state');
+  show('app');
+  renderMoney(); renderApps(); renderCampaigns(); renderSetup();
+  const h = location.hash.slice(1);
+  if (['money', 'apps', 'campaigns', 'setup'].includes(h)) tab(h);
+  else if (!S.settings.adsense_client) tab('setup');
+}
+
+// ---------- Box office ----------
+function directRevenue(rows) {
+  const cpm = Object.fromEntries(S.campaigns.map((c) => [c.id, c.cpm_cents || 0]));
+  return rows.filter((r) => r.source === 'direct').reduce((t, r) => t + (r.impressions * (cpm[r.campaign_id] || 0)) / 1000 / 100, 0);
+}
+function renderMoney() {
+  const net = S.earnings.reduce((t, e) => t + e.earnings_micros / 1e6, 0);
+  const dir = directRevenue(S.stats);
+  const total = net + dir;
+  const imps = S.stats.reduce((t, r) => t + r.impressions, 0);
+  const clicks = S.stats.reduce((t, r) => t + r.clicks, 0);
+  const views = S.stats.reduce((t, r) => t + r.completions, 0);
+  const flap = money(total).split('').map((ch, i) => `<span class="${/[\d]/.test(ch) ? '' : 'sym'}" style="animation-delay:${i * 45}ms">${esc(ch)}</span>`).join('');
+
+  // 30-day stacked bars: Google earnings vs direct (estimated from CPM)
+  const days = [...Array(30)].map((_, i) => new Date(Date.now() - (29 - i) * 864e5).toISOString().slice(0, 10));
+  const byDay = Object.fromEntries(days.map((d) => [d, { n: 0, d: 0 }]));
+  for (const e of S.earnings) if (byDay[e.day]) byDay[e.day].n += e.earnings_micros / 1e6;
+  for (const d of days) byDay[d].d = directRevenue(S.stats.filter((r) => r.day === d));
+  const max = Math.max(0.01, ...days.map((d) => byDay[d].n + byDay[d].d));
+  const bars = days.map((d) => {
+    const v = byDay[d];
+    return `<div data-tip="${d}\nGoogle ${money(v.n)}\nDirect ${money(v.d)}"><i style="height:${(v.n / max) * 140}px;background:var(--blue)"></i><i style="height:${(v.d / max) * 140}px;background:var(--bulb)"></i></div>`;
+  }).join('');
+
+  const perApp = S.apps.map((a) => {
+    const rows = S.stats.filter((r) => r.app_id === a.id);
+    const e = S.earnings.filter((x) => x.app_id === a.id).reduce((t, x) => t + x.earnings_micros / 1e6, 0);
+    return { a, net: rows.filter((r) => r.source === 'network').reduce((t, r) => t + r.impressions, 0),
+      dir: rows.filter((r) => r.source === 'direct').reduce((t, r) => t + r.impressions, 0),
+      clicks: rows.reduce((t, r) => t + r.clicks, 0), e, d: directRevenue(rows) };
+  }).sort((x, y) => (y.e + y.d) - (x.e + x.d));
+
+  $('#money').innerHTML = `
+    <div class="card">
+      <div class="muted tiny" style="text-transform:uppercase;letter-spacing:.12em">Last 30 days · all apps</div>
+      <div class="flap" aria-label="${money(total)}">${flap}</div>
+      <div class="kpis">
+        <div class="kpi"><i>Google (AdSense)</i><b>${money(net)}</b></div>
+        <div class="kpi"><i>Direct sponsors (est.)</i><b>${money(dir)}</b></div>
+        <div class="kpi"><i>Viewable impressions</i><b>${int(imps)}</b></div>
+        <div class="kpi"><i>Clicks · video completes</i><b>${int(clicks)} · ${int(views)}</b></div>
+      </div>
+      <div class="chart">${bars}</div>
+      <div class="legend"><span><i style="background:var(--blue)"></i>Google</span><span><i style="background:var(--bulb)"></i>Direct</span>
+        <span>${S.settings.google_connected ? `Google synced ${esc((S.settings.google_last_sync || '').slice(0, 16).replace('T', ' '))} UTC` : '<a href="#setup" onclick="tab(\'setup\')">Connect Google reporting →</a>'}</span></div>
+      ${S.settings.google_last_error ? `<p class="tiny" style="color:var(--red)">Google sync: ${esc(S.settings.google_last_error)}</p>` : ''}
+    </div>
+    <h2>By app</h2>
+    <div class="card scroll"><table>
+      <tr><th>App</th><th>Audience</th><th class="num">Google imps</th><th class="num">Direct imps</th><th class="num">Clicks</th><th class="num">Google $</th><th class="num">Direct $</th></tr>
+      ${perApp.map((p) => `<tr><td>${esc(p.a.name)} ${p.a.enabled ? '' : '<span class="pill none">off</span>'}</td>
+        <td>${p.a.audience === 'kids' ? '<span class="pill kids">kids</span>' : '<span class="muted tiny">general</span>'}</td>
+        <td class="num">${int(p.net)}</td><td class="num">${int(p.dir)}</td><td class="num">${int(p.clicks)}</td>
+        <td class="num">${money(p.e)}</td><td class="num">${money(p.d)}</td></tr>`).join('')}
+    </table></div>`;
+}
+
+// ---------- Apps & slots ----------
+function renderApps() {
+  $('#apps').innerHTML = `<p class="muted">Every switch is live within a minute: apps read this on load. Slots appear here the first time an app declares them.
+    <b>Kids</b> apps get child-directed Google ads only outside gameplay, kid-safe sponsors only, and no click-outs.</p>
+    <div class="grid">${S.apps.map(appCard).join('')}</div>`;
+  $('#apps').querySelectorAll('[data-app]').forEach((el) => el.onchange = async (e) => {
+    const t = e.target, id = el.dataset.app;
+    try {
+      if (t.dataset.f) { await put('apps/' + id, { [t.dataset.f]: t.type === 'checkbox' ? t.checked : t.value }); }
+      else if (t.dataset.slot) {
+        const tr = t.closest('tr');
+        const v = (k) => tr.querySelector(`[data-k=${k}]`).value;
+        await put(`slots/${id}/${t.dataset.slot}`, { kind: v('kind'), context: v('context'), source: v('source'), ad_unit: v('ad_unit'), frequency_sec: v('frequency_sec') });
+      }
+      toast('Saved'); S = await api('state'); renderMoney();
+    } catch (err) { toast(err.message); }
+  });
+  $('#apps').querySelectorAll('[data-addslot]').forEach((b) => b.onclick = async () => {
+    const id = prompt('Slot id (e.g. footer, gameover, continue):');
+    if (!id) return;
+    await put(`slots/${b.dataset.addslot}/${id}`, { kind: 'banner', context: 'menu', source: 'auto' });
+    await refresh(); tab('apps');
+  });
+  $('#apps').querySelectorAll('[data-delslot]').forEach((b) => b.onclick = async () => {
+    const [a, s] = b.dataset.delslot.split('/');
+    if (!confirm(`Remove slot ${s} from ${a}? (It re-registers if the app still declares it.)`)) return;
+    await api(`slots/${a}/${s}`, { method: 'DELETE' }); await refresh(); tab('apps');
+  });
+}
+function appCard(a) {
+  const slots = S.slots.filter((s) => s.app_id === a.id);
+  const sel = (k, val, opts) => `<select data-k="${k}" data-slot="">${opts.map((o) => `<option ${o === val ? 'selected' : ''}>${o}</option>`).join('')}</select>`;
+  return `<div class="card" data-app="${esc(a.id)}">
+    <div class="row" style="justify-content:space-between">
+      <div style="flex:2"><h3 style="margin:0;font:800 24px var(--display);text-transform:uppercase;letter-spacing:.04em">${esc(a.name)}</h3>
+        <a class="tiny" href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.url.replace('https://', ''))}</a></div>
+      <label class="sw" style="flex:none"><input type="checkbox" data-f="enabled" ${a.enabled ? 'checked' : ''}>Ads</label>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <label class="sw"><input type="checkbox" data-f="network_enabled" ${a.network_enabled ? 'checked' : ''}>Google</label>
+      <label class="sw"><input type="checkbox" data-f="is_game" ${a.is_game ? 'checked' : ''}>Game (video breaks)</label>
+      <select data-f="audience" style="flex:0 0 120px"><option value="general" ${a.audience === 'general' ? 'selected' : ''}>General</option><option value="kids" ${a.audience === 'kids' ? 'selected' : ''}>Kids</option></select>
+    </div>
+    <div class="scroll" style="margin-top:12px"><table>
+      <tr><th>Slot</th><th>Kind</th><th>Where</th><th>Fill</th><th>Ad unit</th><th>Every s</th><th></th></tr>
+      ${slots.map((s) => `<tr>
+        <td class="mono">${esc(s.id)}<div class="tiny muted">${s.seen_at ? 'seen ' + esc(s.seen_at) : 'not seen yet'}</div></td>
+        <td>${sel('kind', s.kind, ['banner', 'interstitial', 'rewarded']).replace('data-slot=""', `data-slot="${esc(s.id)}"`)}</td>
+        <td>${sel('context', s.context, ['menu', 'gameplay']).replace('data-slot=""', `data-slot="${esc(s.id)}"`)}</td>
+        <td>${sel('source', s.source, ['auto', 'network', 'direct', 'off']).replace('data-slot=""', `data-slot="${esc(s.id)}"`)}</td>
+        <td><input type="text" data-k="ad_unit" data-slot="${esc(s.id)}" value="${esc(s.ad_unit || '')}" placeholder="default" style="width:110px"></td>
+        <td><input type="number" data-k="frequency_sec" data-slot="${esc(s.id)}" value="${s.frequency_sec ?? ''}" placeholder="${s.kind === 'interstitial' ? 120 : 0}" style="width:76px"></td>
+        <td><button class="btn danger sm" data-delslot="${esc(a.id)}/${esc(s.id)}" title="Remove">✕</button></td></tr>`).join('') || '<tr><td colspan="7" class="muted tiny">No slots yet. They appear when the app loads the Marquee script.</td></tr>'}
+    </table></div>
+    <p style="margin:10px 0 0"><button class="btn ghost sm" data-addslot="${esc(a.id)}">+ Slot</button></p>
+  </div>`;
+}
+
+// ---------- Sponsors ----------
+function renderCampaigns() {
+  const appChecks = (sel = []) => S.apps.map((a) => `<label class="sw tiny" style="margin:4px 12px 4px 0"><input type="checkbox" name="apps" value="${esc(a.id)}" ${sel.includes(a.id) ? 'checked' : ''}>${esc(a.name)}</label>`).join('');
+  const stat = (id) => S.stats.filter((r) => r.campaign_id === id).reduce((t, r) => [t[0] + r.impressions, t[1] + r.clicks, t[2] + r.completions], [0, 0, 0]);
+  $('#campaigns').innerHTML = `
+    <div class="card">
+      <h2 style="margin-top:0">New sponsor <small>image banners, or video for interstitial + rewarded breaks</small></h2>
+      <form id="newCamp">
+        <div class="drop" id="drop">Drop an image (PNG/JPG/WebP/GIF) or video (MP4/WebM, ≤ 24 MB), or click to choose.<input type="file" id="file" accept="image/png,image/jpeg,image/webp,image/gif,video/mp4,video/webm" hidden><div id="preview"></div></div>
+        <div class="row">
+          <div><label class="f">Campaign name</label><input type="text" name="name" required placeholder="Acme spring launch"></div>
+          <div><label class="f">Advertiser</label><input type="text" name="advertiser" placeholder="Acme"></div>
+        </div>
+        <div class="row">
+          <div><label class="f">Click-through URL (https, general apps only)</label><input type="url" name="click_url" placeholder="https://acme.com"></div>
+          <div style="flex:0 0 120px"><label class="f">CPM ($)</label><input type="number" step="0.01" min="0" name="cpm" placeholder="5.00"></div>
+          <div style="flex:0 0 100px"><label class="f">Weight</label><input type="number" min="1" max="100" name="weight" value="5"></div>
+        </div>
+        <div class="row">
+          <div><label class="f">Starts</label><input type="date" name="start"></div>
+          <div><label class="f">Ends</label><input type="date" name="end"></div>
+        </div>
+        <label class="f">Show in (none checked = every app)</label><div>${appChecks()}</div>
+        <label class="f">Slot kinds (none = all that fit)</label>
+        <div>${['banner', 'interstitial', 'rewarded'].map((k) => `<label class="sw tiny" style="margin:4px 12px 4px 0"><input type="checkbox" name="kinds" value="${k}">${k}</label>`).join('')}</div>
+        <p><label class="sw"><input type="checkbox" name="kid_safe">Kid-safe: I reviewed it (no age-restricted product, no sign-up/data ask, nothing scary)</label></p>
+        <button class="btn">Upload &amp; go live</button>
+      </form>
+    </div>
+    <h2>Running <small>${S.campaigns.length} campaign${S.campaigns.length === 1 ? '' : 's'}</small></h2>
+    <div style="display:grid;gap:10px">${S.campaigns.map((c) => {
+      const [i, k, v] = stat(c.id);
+      const src = c.creative_key ? `/ads/cr/${esc(c.creative_key)}` : '';
+      return `<div class="card camp">
+        ${c.media === 'video' ? `<video class="thumb" src="${src}" muted loop playsinline onmouseenter="this.play()" onmouseleave="this.pause()"></video>` : src ? `<img class="thumb" src="${src}" alt="">` : '<div class="thumb"></div>'}
+        <div><b>${esc(c.name)}</b> <span class="pill ${c.status === 'active' ? 'live' : 'paused'}">${esc(c.status)}</span> ${c.kid_safe ? '<span class="pill kids">kid-safe</span>' : ''}
+          <div class="tiny muted">${esc(c.advertiser || '')} · ${esc(c.media || 'no creative')} · ${c.start || 'now'} → ${c.end || 'open'} · weight ${c.weight} · ${c.cpm_cents ? money(c.cpm_cents / 100) + ' CPM' : 'house/no CPM'}</div>
+          <div class="tiny mono" style="margin-top:4px">${int(i)} imps · ${int(k)} clicks · ${int(v)} completes · ${money(directRevenue(S.stats.filter((r) => r.campaign_id === c.id)))}</div></div>
+        <div class="row" style="flex-wrap:nowrap">
+          <button class="btn sm ${c.status === 'active' ? 'ghost' : ''}" data-toggle="${esc(c.id)}" data-to="${c.status === 'active' ? 'paused' : 'active'}">${c.status === 'active' ? 'Pause' : 'Go live'}</button>
+          <button class="btn danger sm" data-del="${esc(c.id)}">Delete</button></div></div>`;
+    }).join('') || '<p class="muted">No sponsors yet. Your first one also works as a house ad: promote your own apps.</p>'}</div>`;
+
+  const drop = $('#drop'), file = $('#file');
+  drop.onclick = () => file.click();
+  drop.ondragover = (e) => { e.preventDefault(); drop.classList.add('over'); };
+  drop.ondragleave = () => drop.classList.remove('over');
+  drop.ondrop = (e) => { e.preventDefault(); drop.classList.remove('over'); file.files = e.dataTransfer.files; previewFile(); };
+  file.onchange = previewFile;
+  $('#newCamp').onsubmit = createCampaign;
+  $('#campaigns').querySelectorAll('[data-toggle]').forEach((b) => b.onclick = async () => { await put('campaigns/' + b.dataset.toggle, { status: b.dataset.to }); await refresh(); tab('campaigns'); });
+  $('#campaigns').querySelectorAll('[data-del]').forEach((b) => b.onclick = async () => { if (confirm('Delete this campaign and its creative?')) { await api('campaigns/' + b.dataset.del, { method: 'DELETE' }); await refresh(); tab('campaigns'); } });
+}
+let dims = { w: 0, h: 0 };
+function previewFile() {
+  const f = $('#file').files[0];
+  if (!f) return;
+  const url = URL.createObjectURL(f);
+  const el = f.type.startsWith('video') ? Object.assign(document.createElement('video'), { src: url, muted: true, autoplay: true, loop: true, playsInline: true }) : Object.assign(document.createElement('img'), { src: url });
+  el.className = 'thumb'; el.style.cssText = 'width:240px;height:135px;margin-top:12px';
+  el.onloadedmetadata = () => (dims = { w: el.videoWidth, h: el.videoHeight });
+  el.onload = () => (dims = { w: el.naturalWidth, h: el.naturalHeight });
+  $('#preview').replaceChildren(el, Object.assign(document.createElement('div'), { className: 'tiny', textContent: `${f.name} · ${(f.size / 1048576).toFixed(1)} MB` }));
+}
+async function createCampaign(e) {
+  e.preventDefault();
+  const fd = new FormData(e.target), f = $('#file').files[0];
+  if (!f) return toast('Add an image or video first');
+  const btn = e.target.querySelector('button.btn'); btn.disabled = true; btn.textContent = 'Uploading…';
+  try {
+    const { id } = await post('campaigns', {
+      name: fd.get('name'), advertiser: fd.get('advertiser'), click_url: fd.get('click_url'), weight: fd.get('weight'),
+      cpm_cents: Math.round(parseFloat(fd.get('cpm') || 0) * 100), start: fd.get('start'), end: fd.get('end'),
+      apps: fd.getAll('apps'), slot_kinds: fd.getAll('kinds'), kid_safe: !!fd.get('kid_safe'),
+    });
+    await api(`creative/${id}?w=${dims.w}&h=${dims.h}`, { method: 'PUT', body: f, headers: { 'content-type': f.type } });
+    await put('campaigns/' + id, { status: 'active' });
+    toast('Live. Apps pick it up within a minute.'); await refresh(); tab('campaigns');
+  } catch (err) { toast(err.message); btn.disabled = false; btn.textContent = 'Upload & go live'; }
+}
+
+// ---------- Setup ----------
+function renderSetup() {
+  const s = S.settings;
+  const step = (done, title, body) => `<div class="card step ${done ? 'done' : ''}"><h3>${title}</h3>${body}</div>`;
+  const field = (k, label, ph, type = 'text') => `<label class="f">${label}</label><div class="row"><input type="${type}" data-set="${k}" value="${esc(s[k])}" placeholder="${esc(ph)}"><button class="btn sm" style="flex:none" data-save="${k}">Save</button></div>`;
+  const redirect = `${S.origin}/ads/api/google/callback`;
+  $('#setup').innerHTML = `<div class="steps">
+    ${step(!!s.adsense_client, 'Google AdSense publisher ID', `<p class="muted">AdSense → Account → Settings → Account information. Saving it publishes <a href="/ads.txt" target="_blank">/ads.txt</a>, which is also how Google verifies the site.</p>${field('adsense_client', 'Publisher ID', 'pub-1234567890123456')}`)}
+    ${step(!!s.adsense_display_unit, 'Display ad unit', `<p class="muted">AdSense → Ads → By ad unit → Display ads → name it "marquee-display", Responsive → Create → copy the <span class="mono">data-ad-slot</span> number. One unit serves every banner; per-slot units are optional (Apps tab).</p>${field('adsense_display_unit', 'Ad unit ID', '1234567890')}`)}
+    ${step(s.h5_enabled === '1' || s.h5_enabled === true, 'Video breaks in games (H5 Games Ads)', `<p class="muted">Interstitial + rewarded video from Google inside the games. Apply at <a href="https://adsense.google.com/start/h5-games-ads/" target="_blank" rel="noopener">H5 Games Ads</a> once AdSense is approved; flip this on when Google says yes. Until then games use direct video sponsors.</p>
+      <label class="sw"><input type="checkbox" data-toggle-set="h5_enabled" ${s.h5_enabled ? 'checked' : ''}>H5 Games Ads approved</label>`)}
+    ${step(true, 'Test mode', `<p class="muted">Google serves test ads (no money, no policy risk) while you check placements. Turn off to earn.</p>
+      <label class="sw"><input type="checkbox" data-toggle-set="adsense_test" ${s.adsense_test ? 'checked' : ''}>Serve test ads</label>`)}
+    ${step(!!s.google_connected, 'Earnings in the box office', `<p class="muted">Google Cloud Console → APIs &amp; Services → enable <b>AdSense Management API</b> → Credentials → Create OAuth client (Web application) with this redirect URI:</p>
+      <p class="mono tiny copy" data-copy="${esc(redirect)}">${esc(redirect)} ⧉</p>
+      ${field('google_client_id', 'OAuth client ID', '…apps.googleusercontent.com')}
+      ${field('google_client_secret', 'OAuth client secret', 'GOCSPX-…', 'password')}
+      <p class="row" style="justify-content:flex-start;gap:8px"><button class="btn" id="gconnect" style="flex:none">${s.google_connected ? 'Reconnect' : 'Connect AdSense'}</button>
+      ${s.google_connected ? '<button class="btn ghost" id="gsync" style="flex:none">Sync now</button>' : ''}</p>
+      <p class="tiny muted">For per-app numbers: AdSense → Reporting → URL channels → add <span class="mono">mutaafaziz.com/outatime</span>, <span class="mono">/openaero</span>, <span class="mono">/coldgas</span>, <span class="mono">/kin</span>, <span class="mono">/chalktalk</span>, <span class="mono">/hearth</span>, <span class="mono">/library</span> and <span class="mono">18-0.co</span>.</p>`)}
+    ${step(true, 'Consent banner (EU/UK)', `<p class="muted">AdSense → Privacy &amp; messaging → European regulations → create a message (Google's own certified CMP, free). It loads with the ads automatically; nothing to paste here.</p>`)}
+    ${step(!!s.ads_txt_extra, 'Extra ads.txt lines (optional)', `<p class="muted">For other networks or direct resellers, one line each.</p>
+      <textarea data-set="ads_txt_extra" rows="3" style="width:100%;background:#0f0c0a;border:1px solid var(--line);border-radius:8px;padding:9px;color:var(--ink);font-family:var(--mono)">${esc(s.ads_txt_extra)}</textarea>
+      <p><button class="btn sm" data-save="ads_txt_extra">Save</button></p>`)}
+  </div>`;
+  $('#setup').querySelectorAll('[data-save]').forEach((b) => b.onclick = async () => {
+    const k = b.dataset.save;
+    try { await put('settings', { [k]: $(`[data-set="${k}"]`).value }); toast('Saved'); await refresh(); tab('setup'); } catch (err) { toast(err.message); }
+  });
+  $('#setup').querySelectorAll('[data-toggle-set]').forEach((i) => i.onchange = async () => { await put('settings', { [i.dataset.toggleSet]: i.checked }); toast('Saved'); await refresh(); tab('setup'); });
+  $('#setup').querySelectorAll('[data-copy]').forEach((el) => el.onclick = () => { navigator.clipboard.writeText(el.dataset.copy); toast('Copied'); });
+  $('#gconnect').onclick = async () => { try { location.href = (await api('google/connect')).url; } catch (err) { toast(err.message); } };
+  if ($('#gsync')) $('#gsync').onclick = async () => { try { const r = await post('google/sync'); toast(`Synced ${r.rows ?? 0} rows`); await refresh(); tab('money'); } catch (err) { toast(err.message); } };
+}
+
+refresh().catch(() => show('login'));
+</script>
+</body>
+</html>
