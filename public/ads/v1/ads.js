@@ -156,8 +156,10 @@
         else { ins.remove(); directBanner(el, id); }
       };
       mo.observe(ins, { attributes: true, attributeFilter: ['data-ad-status'] });
-      // Google silent (blocked, bad unit): after 6 s treat an empty unit as unfilled.
-      setTimeout(() => settle(ins.getAttribute('data-ad-status') || (ins.offsetHeight > 10 ? 'filled' : 'unfilled')), 6000);
+      // Google silent (blocked, bad unit): after 6 s, a unit with no ad frame at all is unfilled.
+      // A frame means Google is still deciding (lazy units reserve height first): keep listening
+      // for its data-ad-status verdict instead of guessing from the box size.
+      setTimeout(() => { if (!ins.getAttribute('data-ad-status') && !ins.querySelector('iframe')) settle('unfilled'); }, 6000);
       return;
     }
     directBanner(el, id);
