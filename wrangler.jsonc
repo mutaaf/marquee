@@ -14,6 +14,6 @@
   "routes": [
     { "pattern": "mutaafaziz.com/ads/*", "zone_name": "mutaafaziz.com" },
     { "pattern": "mutaafaziz.com/ads", "zone_name": "mutaafaziz.com" },
-    { "pattern": "mutaafaziz.com/ads.txt", "zone_name": "mutaafaziz.com" }
+    { "pattern": "mutaafaziz.com/ads.txt*", "zone_name": "mutaafaziz.com" }
   ]
 }
