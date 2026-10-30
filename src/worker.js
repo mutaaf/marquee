@@ -130,9 +130,13 @@ async function creative(env, key, req) {
 }
 
 async function googleCallback(env, req, url) {
-  if (!(await isOperator(req, env))) return new Response('Sign in to /ads/admin first.', { status: 401 });
+  // Google's redirect is cross-site, so the SameSite=Strict session cookie isn't sent here.
+  // The one-time state (minted by a signed-in operator in admin/google/connect) is the proof.
   const s = await getSettings(env.DB);
-  if (url.searchParams.get('state') !== s.google_oauth_state) return new Response('State mismatch, try Connect again.', { status: 400 });
+  const state = url.searchParams.get('state') || '';
+  if (!s.google_oauth_state || !timingSafeEqual(state, s.google_oauth_state)) return new Response('State mismatch, try Connect again.', { status: 400 });
+  await setSetting(env.DB, 'google_oauth_state', '');
+  if (url.searchParams.get('error')) return new Response(`Google said: ${url.searchParams.get('error')}. Try Connect again.`, { status: 400 });
   try {
     await exchangeCode(env.DB, s, url.origin, url.searchParams.get('code'));
     await pullEarnings(env.DB).catch((e) => setSetting(env.DB, 'google_last_error', String(e.message || e)));
