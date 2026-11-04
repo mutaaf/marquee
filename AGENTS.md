@@ -8,6 +8,7 @@ KV `CREATIVES` holds sponsor images and video.
 |---|---|
 | `/ads/admin/` | Operator console: Box office, Apps & slots, Sponsors, Setup |
 | `/ads/v1/ads.js` | The loader every app includes |
+| `/ads/v1/frame.html?app=&slot=` | One menu banner in a same-origin frame the app removes when its moment ends (COLD GAS title). General apps only: kids apps get a 404. `frame-ancestors 'self'` |
 | `/ads/api/config?app=&slots=` | Public slot decisions (cached 60 s) |
 | `/ads/api/beacon` | Aggregate impression, click and completion counts |
 | `/ads/api/admin/*` | Operator (cookie) or agent (`Authorization: Bearer $AGENT_TOKEN`) |
@@ -45,6 +46,7 @@ const earned = await marquee.rewarded('continue', { beforeAd: pause, afterAd: re
 - Interstitials are frequency-capped per slot (default 120 s).
 - Rewarded ads must be opt-in: the player presses a "watch for X" button first.
 - App ids are `site`, `outatime`, `openaero`, `coldgas`, `kin`, `chalktalk`, `hearth`, `library`, `18-0` and `demo`. Slots register themselves the first time an app declares them.
+- A slot that must stop cold (a title the player leaves for a run): put `/ads/v1/frame.html?app=<id>&slot=<slot>` in an `<iframe>` and remove the iframe. The frame posts `{marqueeFrame: slot, h}` to the parent whenever its height changes, so the parent can size it exactly as the in-page slot would be. The slot must be a registered `banner` in `menu` context.
 - Apps with a no-third-party smoke test: allow-list `pagead2.googlesyndication.com` and Google's ad frames only for the menu context. Keep gameplay requests same-origin.
 
 ## Agent API (Hermes or any other agent)

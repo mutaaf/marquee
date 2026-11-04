@@ -4,12 +4,14 @@
 //            GET  /ads/cr/<key>                 creative bytes (KV), Range-aware for video
 //            GET  /ads/c/<campaign>?a=&s=       click counter → advertiser URL
 //            GET  /ads.txt                      generated from the AdSense publisher id
+//            GET  /ads/v1/frame.html?app=&slot= one banner slot in a removable same-origin frame (no kids apps)
 //   operator /ads/api/admin/*                   cookie session (ADMIN_PASSWORD)
 //   static   /ads/v1/ads.js (loader), /ads/admin/ (console), /ads/privacy/
 import { buildConfig, parseDeclared, adsTxt, KINDS, CONTEXTS, SOURCES } from './lib/select.js';
 import { ensureSchema, getSettings, setSetting } from './db.js';
 import { isOperator, role, sessionCookie, clearCookie, timingSafeEqual } from './auth.js';
 import { report } from './report.js';
+import { frameAllowed, framePage, FRAME_HEADERS } from './lib/frame.js';
 import { authUrl, exchangeCode, pullEarnings } from './google.js';
 
 const json = (data, init = {}) => new Response(JSON.stringify(data), {
@@ -32,6 +34,7 @@ export default {
       }
       if (p.startsWith('/ads/cr/')) return creative(env, p.slice(8), req);
       await ensureSchema(env.DB);
+      if (p === '/ads/v1/frame.html') return frame(env, url);
       if (p === '/ads/api/config') return config(env, url, ctx);
       if (p === '/ads/api/beacon' && req.method === 'POST') return beacon(env, req);
       if (p.startsWith('/ads/c/')) return click(env, p.slice(7), url);
@@ -72,6 +75,21 @@ async function config(env, url, ctx) {
   const settings = await getSettings(db);
   const body = buildConfig({ app, slots: [...byId.values()], settings, campaigns, day: today() });
   return json(body, { headers: { ...cors(), 'cache-control': 'public, max-age=60' } });
+}
+
+async function frame(env, url) {
+  const appId = String(url.searchParams.get('app') || '');
+  const slotId = String(url.searchParams.get('slot') || '');
+  const [app, slot] = /^[a-z0-9][a-z0-9-]{0,39}$/.test(appId) && /^[a-z0-9][a-z0-9-]{0,39}$/.test(slotId)
+    ? await Promise.all([
+      env.DB.prepare('SELECT * FROM apps WHERE id = ?').bind(appId).first(),
+      env.DB.prepare('SELECT * FROM slots WHERE app_id = ? AND id = ?').bind(appId, slotId).first(),
+    ])
+    : [null, null];
+  if (!frameAllowed(appId, slotId, app, slot)) {
+    return new Response('Not found', { status: 404, headers: { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' } });
+  }
+  return new Response(framePage(appId, slotId), { headers: FRAME_HEADERS });
 }
 
 function cors() {
