@@ -5,11 +5,12 @@
 //            GET  /ads/c/<campaign>?a=&s=       click counter → advertiser URL
 //            GET  /ads.txt                      generated from the AdSense publisher id
 //            GET  /ads/v1/frame.html?app=&slot= one banner slot in a removable same-origin frame (no kids apps)
-//   operator /ads/api/admin/*                   cookie session (ADMIN_PASSWORD)
+//   operator /ads/api/admin/*                   cookie session (ADMIN_PASSWORD), or Cloudflare Access once
+//                                               ACCESS_TEAM/ACCESS_AUD/OPERATOR_EMAILS are set (stagehand)
 //   static   /ads/v1/ads.js (loader), /ads/admin/ (console), /ads/privacy/
 import { buildConfig, parseDeclared, adsTxt, KINDS, CONTEXTS, SOURCES } from './lib/select.js';
 import { ensureSchema, getSettings, setSetting } from './db.js';
-import { isOperator, role, sessionCookie, clearCookie, timingSafeEqual } from './auth.js';
+import { operator, session, timingSafeEqual, log } from 'stagehand';
 import { report } from './report.js';
 import { frameAllowed, framePage, FRAME_HEADERS } from './lib/frame.js';
 import { authUrl, exchangeCode, pullEarnings } from './google.js';
@@ -21,38 +22,55 @@ const today = () => new Date().toISOString().slice(0, 10);
 const SECRET_KEYS = ['google_client_secret', 'google_refresh_token'];
 const SETTING_KEYS = ['adsense_client', 'adsense_display_unit', 'adsense_test', 'h5_enabled', 'ads_txt_extra',
   'google_client_id', 'google_client_secret', 'contact_email'];
+const SERVICE = 'marquee';
+const consoleSession = session({ cookie: 'marquee_session', path: '/ads' });
 const cleanId = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
 
 export default {
   async fetch(req, env, ctx) {
-    const url = new URL(req.url);
-    const p = url.pathname;
-    try {
-      if (p === '/ads.txt') {
-        await ensureSchema(env.DB);
-        return new Response(adsTxt(await getSettings(env.DB)), { headers: { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'public, max-age=300' } });
-      }
-      if (p.startsWith('/ads/cr/')) return creative(env, p.slice(8), req);
-      await ensureSchema(env.DB);
-      if (p === '/ads/v1/frame.html') return frame(env, url);
-      if (p === '/ads/api/config') return config(env, url, ctx);
-      if (p === '/ads/api/beacon' && req.method === 'POST') return beacon(env, req);
-      if (p.startsWith('/ads/c/')) return click(env, p.slice(7), url);
-      if (p === '/ads/api/google/callback') return googleCallback(env, req, url);
-      if (p.startsWith('/ads/api/admin/')) return admin(env, req, url, p.slice('/ads/api/admin/'.length));
-      if (p === '/ads' || p === '/ads/') return Response.redirect(`${url.origin}/ads/admin/`, 302);
-      return env.ASSETS.fetch(req);
-    } catch (e) {
-      console.error(e);
-      return json({ error: 'server error' }, { status: 500 });
-    }
+    const t = Date.now(), route = routeOf(new URL(req.url).pathname);
+    let res;
+    try { res = await handle(req, env, ctx); } catch (e) { log(SERVICE, 'request', { method: req.method, route, ms: Date.now() - t, ok: false, error: String(e?.message ?? e).slice(0, 200) }); throw e; }
+    log(SERVICE, 'request', { method: req.method, route, status: res.status, ms: Date.now() - t, ok: res.status < 500 });
+    return res;
   },
 
   async scheduled(_evt, env) {
+    const t = Date.now();
     await ensureSchema(env.DB);
-    try { await pullEarnings(env.DB); } catch (e) { await setSetting(env.DB, 'google_last_error', String(e.message || e)); }
+    let ok = true;
+    try { await pullEarnings(env.DB); } catch (e) { ok = false; await setSetting(env.DB, 'google_last_error', String(e.message || e)); }
+    log(SERVICE, 'scheduled', { job: 'pull-earnings', ms: Date.now() - t, ok });
   },
 };
+
+// Route family for logs: no ids, no query strings.
+const routeOf = (p) => (p.startsWith('/ads/api/admin/') ? `/ads/api/admin/${p.split('/')[4] || ''}`
+  : p.startsWith('/ads/cr/') ? '/ads/cr/*' : p.startsWith('/ads/c/') ? '/ads/c/*' : p.split('/').slice(0, 4).join('/'));
+
+async function handle(req, env, ctx) {
+  const url = new URL(req.url);
+  const p = url.pathname;
+  try {
+    if (p === '/ads.txt') {
+      await ensureSchema(env.DB);
+      return new Response(adsTxt(await getSettings(env.DB)), { headers: { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'public, max-age=300' } });
+    }
+    if (p.startsWith('/ads/cr/')) return creative(env, p.slice(8), req);
+    await ensureSchema(env.DB);
+    if (p === '/ads/v1/frame.html') return frame(env, url);
+    if (p === '/ads/api/config') return config(env, url, ctx);
+    if (p === '/ads/api/beacon' && req.method === 'POST') return beacon(env, req);
+    if (p.startsWith('/ads/c/')) return click(env, p.slice(7), url);
+    if (p === '/ads/api/google/callback') return googleCallback(env, req, url);
+    if (p.startsWith('/ads/api/admin/')) return admin(env, req, url, p.slice('/ads/api/admin/'.length));
+    if (p === '/ads' || p === '/ads/') return Response.redirect(`${url.origin}/ads/admin/`, 302);
+    return env.ASSETS.fetch(req);
+  } catch (e) {
+    log(SERVICE, 'error', { route: routeOf(url.pathname), error: String(e?.message ?? e).slice(0, 200), ok: false });
+    return json({ error: 'server error' }, { status: 500 });
+  }
+}
 
 // ---------- public ----------
 
@@ -174,10 +192,10 @@ async function admin(env, req, url, route) {
       await new Promise((r) => setTimeout(r, 600));
       return json({ error: 'wrong password' }, { status: 401 });
     }
-    return json({ ok: true }, { headers: { 'set-cookie': await sessionCookie(env.ADMIN_PASSWORD) } });
+    return json({ ok: true }, { headers: { 'set-cookie': await consoleSession.issue(env.ADMIN_PASSWORD) } });
   }
-  if (route === 'logout') return json({ ok: true }, { headers: { 'set-cookie': clearCookie } });
-  const who = await role(req, env);
+  if (route === 'logout') return json({ ok: true }, { headers: { 'set-cookie': consoleSession.clear } });
+  const who = await operator(req, env, { session: consoleSession });
   if (!who) return json({ error: 'sign in' }, { status: 401 });
   // State-changing calls must be same-origin (cookie is SameSite=Strict too; belt and braces).
   if (req.method !== 'GET' && req.headers.get('origin') && req.headers.get('origin') !== url.origin) return json({ error: 'origin' }, { status: 403 });

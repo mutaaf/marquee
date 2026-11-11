@@ -15,6 +15,9 @@ KV `CREATIVES` holds sponsor images and video.
 | `/ads/privacy/`, `/ads/demo/` | Ad privacy policy; a playground with every placement type |
 
 `npm run up` installs and runs `wrangler dev` (`.dev.vars`: `ADMIN_PASSWORD`, `AGENT_TOKEN`).
+Operator auth, the agent token and the log line come from the shared [stagehand](https://github.com/mutaaf/stagehand)
+package (cookie `marquee_session` on `/ads`; Cloudflare Access takes over once `ACCESS_TEAM`, `ACCESS_AUD` and
+`OPERATOR_EMAILS` are set). Every request and cron run logs one JSON line `{service, event, ms, ok}`.
 `npm run check` runs the gate. Deploy with `npm run deploy` (wrangler).
 
 ## Policy (non-negotiable; enforced in `src/lib/select.js`)
