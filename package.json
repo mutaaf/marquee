@@ -12,5 +12,6 @@
     "deploy": "wrangler deploy",
     "up": "npm install && wrangler dev"
   },
+  "dependencies": { "stagehand": "github:mutaaf/stagehand#v1.0.0" },
   "devDependencies": { "vitest": "^4.1.11", "wrangler": "^4.151.2" }
 }

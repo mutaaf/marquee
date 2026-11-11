@@ -5,6 +5,8 @@
   "compatibility_date": "2026-10-01",
   "main": "src/worker.js",
   "workers_dev": true,
+  // Workers Logs: every request/cron writes one stagehand JSON line {service, event, ms, ok}.
+  "observability": { "enabled": true },
   "assets": { "directory": "./public", "binding": "ASSETS", "run_worker_first": ["/ads/v1/frame.html", "/ads/api/*", "/ads/c/*", "/ads/cr/*", "/ads.txt", "/ads", "/ads/"] },
   "d1_databases": [{ "binding": "DB", "database_name": "marquee", "database_id": "d923ff70-a9f8-4158-abc0-9f86787ef8eb" }],
   // Creatives (images + video, ≤ 24 MB) live in KV: free tier, no R2 card needed.
