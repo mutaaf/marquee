@@ -30,6 +30,8 @@ export const SEED_APPS = [
   ['openaero', 'OpenAero DFW', 'https://mutaafaziz.com/openaero/', 'kids', 1],
   ['coldgas', 'COLD GAS', 'https://mutaafaziz.com/coldgas/', 'general', 1],
   ['kin', 'KIN', 'https://mutaafaziz.com/kin/', 'kids', 1],
+  // Native iOS app: reads /ads/api/config for direct kid-safe sponsors only (its slot is declared gameplay).
+  ['moonclub', 'Moon Club (iOS)', 'https://mutaafaziz.com/metaphases/kids/', 'kids', 1],
   ['chalktalk', 'Chalk Talk', 'https://mutaafaziz.com/chalktalk/', 'general', 0],
   ['hearth', 'Hearth (demo)', 'https://mutaafaziz.com/hearth/demo/', 'general', 0],
   ['library', 'Library', 'https://mutaafaziz.com/library/', 'general', 0],

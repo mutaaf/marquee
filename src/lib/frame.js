@@ -7,7 +7,7 @@
 
 // Kids apps never go through a frame, whatever the database says (AGENTS.md policy 1): a frame is a
 // general-audience menu banner only. The audience check below is the real rule; this list is the backstop.
-export const KIDS_APPS = ['outatime', 'openaero', 'kin'];
+export const KIDS_APPS = ['outatime', 'openaero', 'kin', 'moonclub'];
 const ID = /^[a-z0-9][a-z0-9-]{0,39}$/;
 
 /** May this app + slot be served as a frame? `app` and `slot` are the stored rows (or null). */
